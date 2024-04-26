@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+  <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+  <link rel="stylesheet" href="static/signup.css">
+</head>
+<body>
+   <div class="logo">
+      <img src="static/logo.jpg" alt="Logo" onclick="window.location.href='/';">
+   </div>
+  <div class="container">
+    <h1>Welcome!</h1>
+    <form id="registrationForm" action="/signupsubmit" method="post">
+      <div class="form-group">
+        <label for="email">Email </label>
+        <input type="email" id="email" name="email" placeholder="Enter your email">
+          <span class="error" id="email_error"></span>
+      </div>
+      <div class="form-group">
+        <label for="password">Password </label>
+          <div class="password-container" style="width: 330px">
+        <input type="password" id="password" name="password" placeholder="Enter your password">
+              <i class="far fa-eye" id="togglePassword"></i>
+          </div>
+          <span class="error" id="password_error"></span>
+      </div>
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password </label>
+           <div class="password-container">
+        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password">
+               <i class="far fa-eye" id="togglePassword"></i>
+           </div>
+          <span class="error" id="confirmPassword_error"></span>
+      </div>
+        <ul class="notifications"></ul>
+      <button class="btn" id="submitBtn" type="submit" >Sign Up</button>
+    </form>
+    <div class="Already-account">
+      Already have an account?
+      <a class="Sign-in" href="/signin">Sign in</a>
+    </div>
+  </div>
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+    var submitButton = document.getElementById('submitBtn');
+    var form = document.getElementById('registrationForm');
+
+    submitButton.addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent the form from submitting
+        var inputs = document.querySelectorAll('input');
+        var firstInvalidInput = null;
+
+        function validateInputs() {
+            var elements = document.querySelectorAll('input');
+            var password = document.getElementById('password');
+            var confirmPassword = document.getElementById('confirmPassword');
+            var isPasswordValid = password.value.length >= 8;
+            var isConfirmPasswordValid = confirmPassword.value === password.value;
+
+            elements.forEach(function(element) {
+                var errorSpan = document.getElementById(element.id + '_error');
+                var isEmpty = element.value === '';
+                var isInput = element.tagName === 'INPUT';
+                var isEmail = element.type === 'email';
+                var emailRegex = /^\S+@\S+\.\S+$/;
+                var isValidEmail = isEmail && emailRegex.test(element.value);
+
+                element.style.borderColor = isEmpty || (isEmail && !isValidEmail) || (element.id === 'password' && !isPasswordValid) || (element.id === 'confirmPassword' && !isConfirmPasswordValid) ? 'red' : '';
+                element.classList.toggle('input-error', isEmpty && isInput || (isEmail && !isValidEmail) || (element.id === 'password' && !isPasswordValid) || (element.id === 'confirmPassword' && !isConfirmPasswordValid));
+
+
+                if (isEmpty) {
+                    errorSpan.textContent = 'This field is required';
+                } else if (isEmail && !isValidEmail) {
+                    errorSpan.textContent = 'Please enter a valid email address';
+                } else if (element.id === 'password' && !isPasswordValid) {
+                    errorSpan.textContent = 'Password must be a minimum of 8 characters';
+                } else if (element.id === 'confirmPassword' && !isConfirmPasswordValid) {
+                    errorSpan.textContent = 'Passwords do not match';
+                } else {
+                    errorSpan.textContent = '';
+                }
+                errorSpan.classList.toggle('show', isEmpty || (isEmail && !isValidEmail) || (element.id === 'password' && !isPasswordValid) || (element.id === 'confirmPassword' && !isConfirmPasswordValid));
+
+                if (!firstInvalidInput && (isEmpty || (isEmail && !isValidEmail) || (element.id === 'password' && !isPasswordValid) || (element.id === 'confirmPassword' && !isConfirmPasswordValid))) {
+                    firstInvalidInput = element; // Set the first invalid input
+                }
+            });
+        }
+
+        validateInputs();
+        if (firstInvalidInput) {
+            firstInvalidInput.focus();
+        }  else{
+            submitButton.style.backgroundColor = '#eaeaea';
+            submitButton.style.color = '#696969';
+            submitButton.textContent = 'Signing up...';
+            submitButton.disabled = true;
+
+
+            setTimeout(function() {
+
+                submitButton.style.backgroundColor = '';
+                submitButton.style.color = '';
+                submitButton.textContent = 'Sign Up';
+                submitButton.disabled = false;
+
+                var formData = new FormData(form);
+            fetch('/signupsubmit', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.error) {
+                      alert(data.error);
+                  } else {
+                      alert(data.success);
+                      form.reset();
+                      window.location.href = "/";
+                  }
+              }).catch(error => console.error('Error:', error));
+            {#document.querySelector('form').submit();#}
+            }, 1500);
+        }
+
+        inputs.forEach(function(input) {
+            input.addEventListener('input', function() {
+                setTimeout(validateInputs, 1000);
+            });
+        });
+    });
+    const togglePassword = document.querySelectorAll('.fa-eye');
+    const passwords = document.querySelectorAll('#password, #confirmPassword');
+
+    togglePassword.forEach(function(toggleIcon) {
+        toggleIcon.addEventListener('click', function(e) {
+            const passwordInput = this.previousElementSibling;
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.classList.toggle('fa-eye-slash');
+        });
+    });
+
+});
+</script>
+</body>
+</html>

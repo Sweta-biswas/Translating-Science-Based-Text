@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="static/translation.css" />
+    <title>Translation</title>
+</head>
+<body>
+    <div class="header-container">
+        <img src="static/logo.jpg" alt="Logo" onclick="window.location.href='/';" class="header-logo">
+        <div class="translate">
+            <h1>Translate Your Phrases Here!</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card input-wrapper">
+            <div class="from">
+                <pre><b>       English</b></pre>
+            </div>
+            <div class="text-area">
+                <textarea id="input-text" cols="30" rows="10" placeholder="Enter your text here"></textarea>
+            </div>
+            <div class="buttons">
+                <button id="clear-all">Clear All</button>
+                <button id="translate">Translate</button>
+                <div class="button">
+                    <div class="button-wrapper" id="download-button">
+                        <div class="text">Download</div>
+                        <span class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"></path></svg>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card output-wrapper">
+            <div class="to">
+                <pre><b>       Bengali</b></pre>
+            </div>
+            <textarea id="output-text" cols="30" rows="10" placeholder="   Translated text will appear here" disabled></textarea>
+        </div>
+    </div>
+
+
+
+    <script>
+        var submitButton = document.getElementById('translate');
+        document.getElementById('translate').addEventListener('click', function() {
+            const inputText = document.getElementById('input-text').value;
+            if (!inputText) {
+                alert('Please enter text to translate.');
+                return;
+            }
+
+            submitButton.style.backgroundColor = '#eaeaea';
+            submitButton.style.color = '#696969';
+            submitButton.textContent = 'Translating...';
+            submitButton.disabled = true;
+
+            fetch('/translation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'input_text': inputText
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    console.log(data.translated_text.length)
+                    if (data.translated_text === "Explicit or bad words detected. Translation aborted. ") {
+                        alert("Explicit or bad words detected.")
+                    } else {
+                        document.getElementById('output-text').value = data.translated_text;
+                    }
+                }
+
+                submitButton.style.backgroundColor = '';
+                submitButton.style.color = '';
+                submitButton.textContent = 'Translate';
+                submitButton.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+
+                submitButton.style.backgroundColor = '';
+                submitButton.style.color = '';
+                submitButton.textContent = 'Translate';
+                submitButton.disabled = false;
+            });
+        });
+
+        document.getElementById('clear-all').addEventListener('click', function() {
+            document.getElementById('input-text').value = '';
+        });
+
+        document.getElementById('download-button').addEventListener('click', function(event) {
+
+        event.preventDefault();
+
+
+        var outputText = document.getElementById('output-text').value;
+
+
+        if (outputText.trim() === '') {
+
+            alert('Please translate some text before downloading.');
+        } else {
+
+            window.location.href = '/savepdf';
+        }
+    });
+
+
+
+    </script>
+</body>
+</html>

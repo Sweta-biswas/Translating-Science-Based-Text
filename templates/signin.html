@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In</title>
+  <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+  <link rel="stylesheet" href="static/signin.css">
+</head>
+<body>
+   <div class="logo">
+      <img src="static/logo.jpg" alt="Logo" onclick="window.location.href='/';">
+   </div>
+  <div class="container">
+    <h1>Welcome back!</h1>
+    <form id="registrationForm" action="/signinsubmit" method="post">
+      <div class="form-group">
+        <label for="email">Email </label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+          <span class="error" id="email_error"></span>
+      </div>
+      <div class="form-group">
+        <label for="password">Password </label>
+          <div class="password-container">
+        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+              <i class="far fa-eye" id="togglePassword"></i>
+           </div>
+          <span class="error" id="password_error"></span>
+      </div>
+      <div class="form-group">
+      </div>
+      <button type="submit" id="submitBtn">Sign In</button>
+    </form>
+    <div class="Already-account">
+      Do not have an account?
+      <a class="Sign-in" href="/signup">Sign up</a>
+    </div>
+  </div>
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+    var submitButton = document.getElementById('submitBtn');
+    var form = document.getElementById('registrationForm');
+
+    submitButton.addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent the form from submitting
+        var inputs = document.querySelectorAll('input');
+        var firstInvalidInput = null;
+
+        function validateInputs() {
+            var elements = document.querySelectorAll('input');
+            var password = document.getElementById('password');
+            var isPasswordValid = password.value.length >= 8;
+
+            elements.forEach(function(element) {
+                var errorSpan = document.getElementById(element.id + '_error');
+                var isEmpty = element.value === '';
+                var isInput = element.tagName === 'INPUT';
+                var isEmail = element.type === 'email';
+                var emailRegex = /^\S+@\S+\.\S+$/;
+                var isValidEmail = isEmail && emailRegex.test(element.value);
+
+                element.style.borderColor = isEmpty || (isEmail && !isValidEmail) || (element.id === 'password' && !isPasswordValid) ? 'red' : '';
+                element.classList.toggle('input-error', isEmpty && isInput || (isEmail && !isValidEmail) || (element.id === 'password' && !isPasswordValid));
+
+
+                if (isEmpty) {
+                    errorSpan.textContent = 'This field is required';
+                } else if (isEmail && !isValidEmail) {
+                    errorSpan.textContent = 'Please enter a valid email address';
+                } else if (element.id === 'password' && !isPasswordValid) {
+                    errorSpan.textContent = 'Password must be a minimum of 8 characters';
+                } else {
+                    errorSpan.textContent = '';
+                }
+                errorSpan.classList.toggle('show', isEmpty || (isEmail && !isValidEmail) || (element.id === 'password' && !isPasswordValid));
+
+                if (!firstInvalidInput && (isEmpty || (isEmail && !isValidEmail) || (element.id === 'password' && !isPasswordValid))) {
+                    firstInvalidInput = element;
+                }
+            });
+        }
+
+        validateInputs();
+        if (firstInvalidInput) {
+            firstInvalidInput.focus();
+        } else {
+
+            submitButton.style.backgroundColor = '#eaeaea';
+            submitButton.style.color = '#696969';
+            submitButton.textContent = 'Signing up...';
+            submitButton.disabled = true;
+
+
+            setTimeout(function() {
+                // Reset the button appearance and text
+                submitButton.style.backgroundColor = '';
+                submitButton.style.color = '';
+                submitButton.textContent = 'Sign in';
+                submitButton.disabled = false;
+
+                var formData = new FormData(form);
+            fetch('/signinsubmit', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.error) {
+                      alert(data.error);
+                  } else {
+                      alert(data.success);
+                      form.reset();
+                      window.location.href = "/";
+                  }
+              }).catch(error => console.error('Error:', error));
+
+                {#document.querySelector('form').submit();#}
+            }, 1500);
+        }
+
+        inputs.forEach(function(input) {
+            input.addEventListener('input', function() {
+                setTimeout(validateInputs, 1000);
+            });
+        });
+    });
+    const togglePassword = document.querySelector('#togglePassword');
+const password = document.querySelector('#password');
+
+togglePassword.addEventListener('click', function (e) {
+    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+    password.setAttribute('type', type);
+    this.classList.toggle('fa-eye-slash');
+});
+});
+
+
+</script>
+</body>
+</html>
